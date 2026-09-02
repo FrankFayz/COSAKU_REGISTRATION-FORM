@@ -12,11 +12,11 @@ export function clearToken() {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
+const LIVE_API = "https://cosaku-registration-form.onrender.com";
+
 export function apiUrl(path: string) {
-  const base = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-  if (!base && import.meta.env.PROD) {
-    throw new Error("API is not configured. Set VITE_API_URL to the Render backend URL.");
-  }
+  const fromEnv = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  const base = fromEnv || (import.meta.env.PROD ? LIVE_API : "");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
