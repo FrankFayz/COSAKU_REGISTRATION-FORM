@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Source Serif 4", "Times New Roman", serif;
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --color-navy: #002147;
+  --color-navy-deep: #00152e;
+  --color-blue: #0a3d73;
+  --color-gold: #c9a227;
+  --color-green: #1b7a3a;
+  --color-cream: #f7f5f0;
+  --color-paper: #ffffff;
+  --color-ink: #111111;
+  --color-mute: #4a5560;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-navy);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.welcome-shell {
+  min-height: 100svh;
+  background: var(--color-navy);
+  color: white;
+}
+
+.welcome-shell img,
+.logo-lockup,
+.btn-gold,
+.btn-blue,
+.progress-track,
+.progress-fill {
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
+}
+
+.fade-up {
+  animation: fade-up 0.55s ease both;
+}
+.fade-up-delay {
+  animation: fade-up 0.55s ease 0.1s both;
+}
+.fade-up-late {
+  animation: fade-up 0.55s ease 0.2s both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gold-line {
+  height: 2px;
+  width: 56px;
+  background: var(--color-gold);
+}
+
+.progress-track {
+  height: 2px;
+  width: min(180px, 50vw);
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-gold);
+  animation: fill-bar 5.2s linear forwards;
+}
+
+@keyframes fill-bar {
+  to {
+    width: 100%;
+  }
+}
+
+.logo-lockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: #fff;
+  padding: 0.4rem 0.65rem;
+}
+
+.logo-lockup img {
+  display: block;
+  width: auto;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.logo-lockup--header {
+  gap: 0.55rem;
+  padding: 0.28rem 0.5rem;
+}
+
+.logo-lockup--header img {
+  height: 2.35rem;
+}
+
+.logo-lockup--welcome {
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+}
+
+.logo-lockup--welcome img {
+  height: 4.25rem;
+}
+
+.card {
+  background: var(--color-paper);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.field {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: white;
+  border-radius: 2px;
+  padding: 0.65rem 0.8rem;
+  font-size: 16px;
+  color: var(--color-ink);
+  outline: none;
+  font-family: inherit;
+}
+
+.field:focus {
+  border-color: var(--color-navy);
+}
+
+.btn-gold {
+  background: var(--color-gold);
+  color: var(--color-navy);
+  font-weight: 700;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: #b8911c;
+}
+
+.btn-blue {
+  background: var(--color-navy);
+  color: white;
+  font-weight: 600;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-blue:hover:not(:disabled) {
+  background: var(--color-blue);
+}
+
+.chip {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: white;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--color-navy);
+  background: var(--color-cream);
+}
+
+@media (max-width: 640px) {
+  .logo-lockup--header img {
+    height: 2rem;
+  }
+
+  .logo-lockup--welcome img {
+    height: 3.25rem;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
