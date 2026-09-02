@@ -67,73 +67,73 @@ export function EventDetailPage() {
 
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-[0.28em] text-blue">{event.venue}</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl text-navy">{event.title}</h1>
-      <p className="mt-2 text-sm text-mute">{formatWhen(event.starts_at)}</p>
-      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-ink/80">{event.description}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{event.title}</h1>
+          <p className="mt-1 text-sm text-mute">
+            {event.venue} · {formatWhen(event.starts_at)}
+          </p>
+        </div>
+        <span className={`status-pill ${event.is_closed ? "status-closed" : "status-open"}`}>
+          {event.is_closed ? "Closed" : "Open"}
+        </span>
+      </div>
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 
-      <div className="no-print mt-6 flex flex-wrap gap-3">
+      <div className="action-row no-print mt-5">
         <Link to={`/admin/events/${event.id}/edit`} className="btn-blue px-4 py-2 text-sm">
-          Edit event
+          Edit
         </Link>
         <button type="button" className="btn-gold px-4 py-2 text-sm" onClick={downloadCsv}>
           Download CSV
         </button>
-        <button type="button" className="bg-navy/10 px-4 py-2 text-sm text-navy" onClick={() => window.print()}>
-          Print door list
+        <button type="button" className="bg-white px-4 py-2 text-sm text-ink" onClick={() => window.print()}>
+          Print
         </button>
         <button type="button" className="px-4 py-2 text-sm text-red-700" onClick={removeEvent}>
           Delete
         </button>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="card p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-mute">Registered</p>
-          <p className="mt-1 text-3xl text-navy">{rows.length}</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-mute">Registered</p>
+          <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{rows.length}</p>
         </div>
         <div className="card p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-mute">Present</p>
-          <p className="mt-1 text-3xl text-navy">{present}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-mute">Capacity</p>
-          <p className="mt-1 text-3xl text-navy">{event.capacity ?? "Open"}</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-mute">Present</p>
+          <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{present}</p>
         </div>
       </div>
 
-      <div className="card mt-6 overflow-hidden">
-        <div className="no-print border-b border-navy/10 p-4">
-          <input className="field" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, Kab email, WhatsApp…" />
+      <div className="mt-5 overflow-hidden bg-white">
+        <div className="no-print border-b border-[#e6eaed] p-3">
+          <input className="field" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-navy text-white">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Kab Email</th>
-                <th className="px-4 py-3 font-medium">WhatsApp number</th>
-                <th className="px-4 py-3 font-medium">Programme</th>
-                <th className="px-4 py-3 font-medium">Year</th>
-                <th className="no-print px-4 py-3 font-medium">Door</th>
+                <th>Name</th>
+                <th>Kab Email</th>
+                <th>WhatsApp number</th>
+                <th>Programme</th>
+                <th>Year</th>
+                <th className="no-print">Door</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((row) => (
-                <tr key={row.id} className="border-t border-navy/10">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-navy">{row.full_name}</p>
-                    {row.extra_answer ? <p className="text-xs text-mute">{row.extra_answer}</p> : null}
-                  </td>
-                  <td className="px-4 py-3">{row.kab_email}</td>
-                  <td className="px-4 py-3">{row.phone}</td>
-                  <td className="px-4 py-3">{row.programme}</td>
-                  <td className="px-4 py-3">{row.year_of_study}</td>
-                  <td className="no-print px-4 py-3">
+                <tr key={row.id}>
+                  <td className="font-medium">{row.full_name}</td>
+                  <td>{row.kab_email}</td>
+                  <td>{row.phone}</td>
+                  <td>{row.programme}</td>
+                  <td>{row.year_of_study}</td>
+                  <td className="no-print">
                     <button
                       type="button"
-                      className={`px-3 py-1 text-xs font-semibold ${row.attended ? "bg-green text-white" : "bg-navy/10 text-navy"}`}
+                      className={`px-3 py-1 text-xs font-semibold ${row.attended ? "bg-green text-white" : "bg-[#eef1f4] text-ink"}`}
                       onClick={() => toggle(row)}
                     >
                       {row.attended ? "Present" : "Mark"}

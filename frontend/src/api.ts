@@ -14,7 +14,18 @@ export function clearToken() {
 
 export function apiUrl(path: string) {
   const base = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  if (!base && import.meta.env.PROD) {
+    throw new Error("API is not configured. Set VITE_API_URL to the Render backend URL.");
+  }
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export function asList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === "object" && Array.isArray((data as { results?: unknown }).results)) {
+    return (data as { results: T[] }).results;
+  }
+  return [];
 }
 
 type Options = RequestInit & { json?: unknown };
@@ -37,8 +48,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
-    if (!response.ok) throw new Error("Request failed.");
-    return (await response.blob()) as T;
+    throw new Error("Could not reach the COSAKU API.");
   }
 
   const data = await response.json();

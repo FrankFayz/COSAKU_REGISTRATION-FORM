@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken } from "../../api";
-import { BrandMark } from "../../components/Brand";
+import { SiteHeader } from "../../components/Brand";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
@@ -30,24 +30,26 @@ export function AdminLoginPage() {
   }
 
   return (
-    <main className="welcome-shell grid place-items-center px-5 py-10">
-      <form className="w-full max-w-md bg-paper p-8 text-ink" onSubmit={onSubmit}>
-        <BrandMark />
-        <h1 className="mt-6 font-[family-name:var(--font-display)] text-3xl text-navy">Executive login</h1>
-        <p className="mt-2 text-sm text-mute">Events, attendance, and CSV lists.</p>
-        {error ? <p className="mt-4 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
-        <label className="mt-6 grid gap-2 text-sm font-medium text-navy">
-          Email
-          <input className="field" name="email" type="email" required defaultValue="admin@cosaku.kab.ac.ug" />
-        </label>
-        <label className="mt-4 grid gap-2 text-sm font-medium text-navy">
-          Password
-          <input className="field" name="password" type="password" required />
-        </label>
-        <button className="btn-gold mt-6 w-full py-3.5 text-sm uppercase tracking-[0.16em]" disabled={pending}>
-          {pending ? "Checking…" : "Sign in"}
-        </button>
-      </form>
-    </main>
+    <div className="min-h-svh bg-cream">
+      <SiteHeader />
+      <main className="page-wrap">
+        <form className="form-card" onSubmit={onSubmit}>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-kab">Executive login</h1>
+          <p className="mt-2 text-sm text-mute">Events, attendance, and CSV lists.</p>
+          {error ? <p className="mt-4 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+          <label className="mt-6 grid gap-2 text-sm font-medium text-ink">
+            Email
+            <input className="field" name="email" type="email" required defaultValue="admin@cosaku.kab.ac.ug" />
+          </label>
+          <label className="mt-4 grid gap-2 text-sm font-medium text-ink">
+            Password
+            <input className="field" name="password" type="password" required />
+          </label>
+          <button className="btn-gold mt-6 w-full py-3.5 text-sm uppercase tracking-[0.12em]" disabled={pending}>
+            {pending ? "Checking…" : "Sign in"}
+          </button>
+        </form>
+      </main>
+    </div>
   );
 }

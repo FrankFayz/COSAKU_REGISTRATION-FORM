@@ -4,8 +4,8 @@ from django.db import models
 class Event(models.Model):
     slug = models.SlugField(unique=True, max_length=80)
     title = models.CharField(max_length=120)
-    summary = models.CharField(max_length=200)
-    description = models.TextField()
+    summary = models.CharField(max_length=200, blank=True, default="")
+    description = models.TextField(blank=True, default="")
     venue = models.CharField(max_length=120)
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField(null=True, blank=True)

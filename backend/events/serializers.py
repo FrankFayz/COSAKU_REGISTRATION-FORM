@@ -132,6 +132,14 @@ class AdminEventSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("slug", "created_at", "updated_at", "show_public_details")
+        extra_kwargs = {
+            "summary": {"required": False, "allow_blank": True},
+            "description": {"required": False, "allow_blank": True},
+            "capacity": {"required": False, "allow_null": True},
+            "extra_question": {"required": False, "allow_blank": True},
+            "extra_question_required": {"required": False},
+            "is_featured": {"required": False},
+        }
 
     def get_taken(self, obj):
         value = getattr(obj, "taken", None)
@@ -152,6 +160,10 @@ class AdminEventSerializer(serializers.ModelSerializer):
             Event.objects.update(is_featured=False)
         validated_data["slug"] = unique_slug(validated_data["title"])
         validated_data["show_public_details"] = True
+        validated_data.setdefault("summary", validated_data["title"])
+        validated_data.setdefault("description", "")
+        validated_data.setdefault("capacity", None)
+        validated_data.setdefault("extra_question", "")
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
