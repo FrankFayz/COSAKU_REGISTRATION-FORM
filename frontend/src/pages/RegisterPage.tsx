@@ -6,12 +6,12 @@ import type { EventItem, RegistrationItem } from "../types";
 import { PROGRAMMES, YEARS, formatClock, formatDay } from "../utils";
 
 function shortError(message: string) {
-  if (/already registered/i.test(message)) return "Already registered.";
-  if (/full/i.test(message)) return "Event is full.";
-  if (/closed/i.test(message)) return "Registration closed.";
-  if (/kabale university email/i.test(message)) return "Use your Kabale University email.";
-  if (/kab email|valid email/i.test(message)) return "Enter your Kab email.";
-  if (/phone|whatsapp|07xx/i.test(message)) return "Use a valid WhatsApp number.";
+  if (/already registered/i.test(message)) return "This Kab email is already registered.";
+  if (/full/i.test(message)) return "This event is full.";
+  if (/closed/i.test(message)) return "Registration is closed.";
+  if (/kabale university email|kab email|valid email/i.test(message)) return "Use your @kab.ac.ug email.";
+  if (/phone|whatsapp|07xx/i.test(message)) return "Enter a valid WhatsApp number.";
+  if (/could not reach|not configured/i.test(message)) return "Could not reach the registration desk.";
   const first = message.split(/[.!]/)[0]?.trim();
   return first ? `${first}.` : "Could not register.";
 }
@@ -27,9 +27,9 @@ export function RegisterPage() {
   useEffect(() => {
     api<EventItem[] | { results?: EventItem[] }>("/api/events/")
       .then((data) => {
-        const list = asList<EventItem>(data);
-        setEvents(list);
-        setEventId(list[0]?.id ?? null);
+        const next = asList<EventItem>(data);
+        setEvents(next);
+        setEventId(next[0]?.id ?? null);
       })
       .catch((err: Error) => {
         setEvents([]);
@@ -71,118 +71,107 @@ export function RegisterPage() {
   }
 
   const showDetails = Boolean(selected?.show_public_details);
-  const seats = selected
-    ? selected.capacity
-      ? selected.is_full
-        ? "Full"
-        : `${selected.seats_left} / ${selected.capacity}`
-      : `${selected.taken} registered`
-    : "";
 
   return (
     <div className="min-h-svh bg-cream">
       <SiteHeader />
       <main className="page-wrap">
-        <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-kab">Register</h1>
-        {loading ? <p className="mt-4 text-sm text-mute">Loading…</p> : null}
+        <p className="form-kicker">COSAKU</p>
+        <h1 className="form-title">Event registration</h1>
+        <p className="form-lead">Computing Students Association of Kabale University</p>
 
-        <div className="mt-6 grid gap-5">
-          {list.length > 1 ? (
-            <div className="grid gap-2">
-              {list.map((event) => (
-                <button
-                  key={event.id}
-                  type="button"
-                  aria-pressed={event.id === selected?.id}
-                  onClick={() => setEventId(event.id)}
-                  className="chip px-3 py-2.5 text-left"
-                >
-                  <p className="font-medium text-navy">{event.title}</p>
-                </button>
-              ))}
-            </div>
-          ) : null}
+        {list.length > 1 ? (
+          <div className="event-switch mt-5">
+            {list.map((event) => (
+              <button
+                key={event.id}
+                type="button"
+                aria-pressed={event.id === selected?.id}
+                onClick={() => setEventId(event.id)}
+                className="chip"
+              >
+                {event.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
-          {selected && showDetails ? (
-            <aside className="card p-5">
-              <h2 className="font-[family-name:var(--font-display)] text-2xl leading-tight text-navy">{selected.title}</h2>
-              <dl className="mt-4 grid gap-3 text-sm">
-                <div>
-                  <dt className="text-mute">When</dt>
-                  <dd className="mt-0.5 font-medium text-navy">
-                    {formatDay(selected.starts_at)} · {formatClock(selected.starts_at)}
-                    {selected.ends_at ? ` – ${formatClock(selected.ends_at)}` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-mute">Where</dt>
-                  <dd className="mt-0.5 font-medium text-navy">{selected.venue}</dd>
-                </div>
-                <div>
-                  <dt className="text-mute">Seats</dt>
-                  <dd className="mt-0.5 font-medium text-navy">{seats}</dd>
-                </div>
-              </dl>
-            </aside>
-          ) : null}
+        {selected && showDetails ? (
+          <p className="event-line">
+            {selected.title}
+            <span>
+              {formatDay(selected.starts_at)} · {formatClock(selected.starts_at)}
+              {selected.ends_at ? ` – ${formatClock(selected.ends_at)}` : ""} · {selected.venue}
+            </span>
+          </p>
+        ) : null}
 
-          <form onSubmit={onSubmit} className="form-card">
-            {error ? <p className="mb-4 text-sm text-red-700">{error}</p> : null}
-            {!loading && !selected ? <p className="mb-4 text-sm text-mute">No open event yet.</p> : null}
-            <div className="grid gap-4">
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Name
-                <input className="field" name="full_name" autoComplete="name" required />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Kab Email
-                <input className="field" name="kab_email" type="email" autoComplete="email" required />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                WhatsApp number
-                <input className="field" name="phone" inputMode="tel" autoComplete="tel" required />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Programme
-                <select className="field" name="programme" required defaultValue="">
-                  <option value="" disabled>
-                    Select
+        <form onSubmit={onSubmit} className="form-card mt-5">
+          {loading ? <p className="mb-4 text-sm text-mute">Loading the desk…</p> : null}
+          {error ? <p className="form-alert">{error}</p> : null}
+          {!loading && !selected ? <p className="mb-4 text-sm text-mute">No open event yet.</p> : null}
+
+          <div className="form-grid">
+            <label className="form-label form-span-2">
+              Full name
+              <input className="field" name="full_name" autoComplete="name" required placeholder="As on your student card" />
+            </label>
+            <label className="form-label">
+              Kab Email
+              <input
+                className="field"
+                name="kab_email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="name@kab.ac.ug"
+              />
+            </label>
+            <label className="form-label">
+              WhatsApp number
+              <input className="field" name="phone" inputMode="tel" autoComplete="tel" required placeholder="07XX XXX XXX" />
+            </label>
+            <label className="form-label">
+              Programme
+              <select className="field" name="programme" required defaultValue="">
+                <option value="" disabled>
+                  Select programme
+                </option>
+                {PROGRAMMES.map((programme) => (
+                  <option key={programme} value={programme}>
+                    {programme}
                   </option>
-                  {PROGRAMMES.map((programme) => (
-                    <option key={programme} value={programme}>
-                      {programme}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Year
-                <select className="field" name="year_of_study" required defaultValue="">
-                  <option value="" disabled>
-                    Select
+                ))}
+              </select>
+            </label>
+            <label className="form-label">
+              Year
+              <select className="field" name="year_of_study" required defaultValue="">
+                <option value="" disabled>
+                  Select year
+                </option>
+                {YEARS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
                   </option>
-                  {YEARS.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+                ))}
+              </select>
+            </label>
+            {selected?.extra_question ? (
+              <label className="form-label form-span-2">
+                {selected.extra_question}
+                <input className="field" name="extra_answer" required={selected.extra_question_required} />
               </label>
-              {selected?.extra_question ? (
-                <label className="grid gap-1.5 text-sm font-medium text-ink">
-                  {selected.extra_question}
-                  <input className="field" name="extra_answer" required={selected.extra_question_required} />
-                </label>
-              ) : null}
-            </div>
-            <button
-              className="btn-gold mt-6 w-full py-3.5 text-sm uppercase tracking-[0.12em] disabled:opacity-50"
-              disabled={pending || !selected || selected.is_full}
-            >
-              {!selected ? "Unavailable" : selected.is_full ? "Full" : pending ? "Saving…" : "Register"}
-            </button>
-          </form>
-        </div>
+            ) : null}
+          </div>
+
+          <button
+            className="btn-gold mt-6 w-full py-3.5 text-sm uppercase tracking-[0.14em] disabled:opacity-50"
+            disabled={pending || !selected || selected.is_full}
+          >
+            {!selected ? "Closed" : selected.is_full ? "Full" : pending ? "Submitting…" : "Submit registration"}
+          </button>
+        </form>
 
         <PublicFooter />
       </main>

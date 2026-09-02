@@ -14,7 +14,10 @@ def csv_env(name: str, default: str = "") -> list[str]:
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")
 DEBUG = os.getenv("DEBUG", "true").lower() in {"1", "true", "yes"}
-ALLOWED_HOSTS = csv_env("ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = csv_env(
+    "ALLOWED_HOSTS",
+    "127.0.0.1,localhost,cosaku-registration-form.onrender.com",
+)
 render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
 if render_host and render_host not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_host)
