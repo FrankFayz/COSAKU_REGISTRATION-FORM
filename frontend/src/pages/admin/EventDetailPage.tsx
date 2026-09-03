@@ -32,7 +32,6 @@ export function EventDetailPage() {
     );
   }, [query, rows]);
 
-  const present = rows.filter((row) => row.attended).length;
   const programmeSlices = useMemo(
     () => countSlices(rows.map((row) => row.programme)),
     [rows],
@@ -147,16 +146,6 @@ export function EventDetailPage() {
         <div className="card p-4">
           <p className="text-xs uppercase tracking-[0.12em] text-mute">Registered</p>
           <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{rows.length}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase tracking-[0.12em] text-mute">Present</p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{present}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase tracking-[0.12em] text-mute">Turnout</p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">
-            {rows.length ? `${Math.round((present / rows.length) * 100)}%` : "—"}
-          </p>
         </div>
       </div>
 
