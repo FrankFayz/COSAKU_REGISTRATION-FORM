@@ -9,6 +9,7 @@ export const PROGRAMMES = [
 ] as const;
 
 export const YEARS = ["Year 1", "Year 2", "Year 3", "Year 4", "Postgraduate"] as const;
+export const GENDERS = ["Male", "Female"] as const;
 
 export function formatDay(iso: string) {
   return new Intl.DateTimeFormat("en-UG", {

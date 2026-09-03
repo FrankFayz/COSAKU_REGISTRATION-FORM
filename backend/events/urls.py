@@ -12,6 +12,7 @@ urlpatterns = [
     path("admin/recent/", views.RecentRegistrationsView.as_view()),
     path("admin/events/", views.AdminEventListCreateView.as_view()),
     path("admin/events/<int:pk>/", views.AdminEventDetailView.as_view()),
+    path("admin/events/<int:pk>/desk/", views.EventRegistrationDeskView.as_view()),
     path("admin/events/<int:pk>/csv/", views.EventCSVView.as_view()),
     path("admin/registrations/<int:pk>/attendance/", views.AttendanceView.as_view()),
 ]

@@ -14,6 +14,7 @@ PROGRAMMES = [
 ]
 
 YEARS = ["Year 1", "Year 2", "Year 3", "Year 4", "Postgraduate"]
+GENDERS = ["Male", "Female"]
 
 
 class PublicEventSerializer(serializers.ModelSerializer):
@@ -60,6 +61,7 @@ class PublicEventSerializer(serializers.ModelSerializer):
 
 class RegistrationCreateSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=80)
+    gender = serializers.ChoiceField(choices=[(g, g) for g in GENDERS])
     kab_email = serializers.EmailField()
     phone = serializers.CharField(max_length=30)
     programme = serializers.ChoiceField(choices=[(p, p) for p in PROGRAMMES])
@@ -91,6 +93,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "full_name",
+            "gender",
             "kab_email",
             "phone",
             "programme",
@@ -139,6 +142,8 @@ class AdminEventSerializer(serializers.ModelSerializer):
             "extra_question": {"required": False, "allow_blank": True},
             "extra_question_required": {"required": False},
             "is_featured": {"required": False},
+            "is_closed": {"required": False},
+            "is_published": {"required": False},
         }
 
     def get_taken(self, obj):
@@ -155,11 +160,31 @@ class AdminEventSerializer(serializers.ModelSerializer):
             return None
         return max(obj.capacity - self.get_taken(obj), 0)
 
+    def validate(self, attrs):
+        starts = attrs.get("starts_at", getattr(self.instance, "starts_at", None))
+        ends = attrs.get("ends_at", getattr(self.instance, "ends_at", None))
+        if not starts or not ends:
+            raise serializers.ValidationError("Starts and ends are required.")
+        if ends <= starts:
+            raise serializers.ValidationError({"ends_at": "The event must end after it starts."})
+
+        clash = Event.objects.filter(starts_at__lt=ends, ends_at__gt=starts)
+        if self.instance:
+            clash = clash.exclude(pk=self.instance.pk)
+        clash = clash.order_by("starts_at").first()
+        if clash:
+            raise serializers.ValidationError(
+                f'This time overlaps “{clash.title}”. COSAKU runs one event at a time.'
+            )
+        return attrs
+
     def create(self, validated_data):
         if validated_data.get("is_featured"):
             Event.objects.update(is_featured=False)
         validated_data["slug"] = unique_slug(validated_data["title"])
         validated_data["show_public_details"] = True
+        validated_data["is_published"] = True
+        validated_data["is_closed"] = True
         validated_data.setdefault("summary", validated_data["title"])
         validated_data.setdefault("description", "")
         validated_data.setdefault("capacity", None)
@@ -169,5 +194,7 @@ class AdminEventSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if validated_data.get("is_featured"):
             Event.objects.exclude(pk=instance.pk).update(is_featured=False)
+        validated_data.pop("is_closed", None)
+        validated_data.pop("is_published", None)
         validated_data["show_public_details"] = True
         return super().update(instance, validated_data)

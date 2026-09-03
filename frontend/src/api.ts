@@ -1,4 +1,5 @@
 const TOKEN_KEY = "cosaku_admin_token";
+const LIVE_API = "https://cosaku-registration-form.onrender.com";
 
 export function getToken() {
   return sessionStorage.getItem(TOKEN_KEY);
@@ -12,12 +13,24 @@ export function clearToken() {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
-const LIVE_API = "https://cosaku-registration-form.onrender.com";
+export function apiUrl(path: string, base = apiBase()) {
+  const prefix = base.replace(/\/$/, "");
+  return `${prefix}${path.startsWith("/") ? path : `/${path}`}`;
+}
 
-export function apiUrl(path: string) {
+function apiBase() {
   const fromEnv = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-  const base = fromEnv || (import.meta.env.PROD ? LIVE_API : "");
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  if (fromEnv) return fromEnv;
+  return import.meta.env.PROD ? LIVE_API : "";
+}
+
+function shouldFallback(response: Response | null, failed: boolean) {
+  if (import.meta.env.PROD || apiBase()) return false;
+  if (failed) return true;
+  if (!response) return true;
+  if (response.status === 502 || response.status === 503 || response.status === 504) return true;
+  const type = response.headers.get("content-type") || "";
+  return response.status >= 500 && !type.includes("application/json");
 }
 
 export function asList<T>(data: unknown): T[] {
@@ -38,11 +51,33 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(apiUrl(path), {
-    ...options,
+  const { json, ...requestInit } = options;
+  const init: RequestInit = {
+    ...requestInit,
     headers,
-    body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
-  });
+    body: json !== undefined ? JSON.stringify(json) : options.body,
+  };
+
+  let response: Response | null = null;
+  let failed = false;
+  try {
+    response = await fetch(apiUrl(path), init);
+  } catch {
+    failed = true;
+  }
+
+  if (shouldFallback(response, failed)) {
+    try {
+      response = await fetch(apiUrl(path, LIVE_API), init);
+      failed = false;
+    } catch {
+      failed = true;
+    }
+  }
+
+  if (failed || !response) {
+    throw new Error("Could not reach the COSAKU API.");
+  }
 
   if (response.status === 204) return undefined as T;
 

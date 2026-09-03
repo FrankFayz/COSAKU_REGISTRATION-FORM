@@ -16,6 +16,6 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(Registration)
 class RegistrationAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "kab_email", "event", "attended", "created_at")
-    list_filter = ("attended", "event")
+    list_display = ("full_name", "gender", "kab_email", "event", "attended", "created_at")
+    list_filter = ("attended", "gender", "event")
     search_fields = ("full_name", "kab_email", "phone")

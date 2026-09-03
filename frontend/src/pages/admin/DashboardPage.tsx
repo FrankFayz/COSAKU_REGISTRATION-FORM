@@ -74,7 +74,7 @@ export function DashboardPage() {
                     </p>
                   </span>
                   <span className={`status-pill ${event.is_closed ? "status-closed" : "status-open"}`}>
-                    {event.is_closed ? "Closed" : "Open"}
+                    {event.is_closed ? "Stopped" : "Open"}
                   </span>
                 </Link>
               </li>

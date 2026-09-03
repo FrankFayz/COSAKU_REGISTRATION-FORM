@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, asList } from "../api";
-import { PublicFooter, SiteHeader } from "../components/Brand";
+import { PageShell } from "../components/Brand";
 import type { EventItem, RegistrationItem } from "../types";
-import { PROGRAMMES, YEARS, formatClock, formatDay } from "../utils";
+import { PROGRAMMES, YEARS, GENDERS, formatClock, formatDay } from "../utils";
 
 function shortError(message: string) {
   if (/already registered/i.test(message)) return "This Kab email is already registered.";
@@ -55,6 +55,7 @@ export function RegisterPage() {
         method: "POST",
         json: {
           full_name: form.get("full_name"),
+          gender: form.get("gender"),
           kab_email: form.get("kab_email"),
           phone: form.get("phone"),
           programme: form.get("programme"),
@@ -70,15 +71,11 @@ export function RegisterPage() {
     }
   }
 
-  const showDetails = Boolean(selected?.show_public_details);
-
   return (
-    <div className="min-h-svh bg-cream">
-      <SiteHeader />
+    <PageShell>
       <main className="page-wrap">
-        <p className="form-kicker">COSAKU</p>
-        <h1 className="form-title">Event registration</h1>
-        <p className="form-lead">Computing Students Association of Kabale University</p>
+        <p className="form-kicker">Moving technology to another level</p>
+        <h1 className="form-title">Join this event</h1>
 
         {list.length > 1 ? (
           <div className="event-switch mt-5">
@@ -96,7 +93,7 @@ export function RegisterPage() {
           </div>
         ) : null}
 
-        {selected && showDetails ? (
+        {selected ? (
           <p className="event-line">
             {selected.title}
             <span>
@@ -107,15 +104,25 @@ export function RegisterPage() {
         ) : null}
 
         <form onSubmit={onSubmit} className="form-card mt-5">
-          {loading ? <p className="mb-4 text-sm text-mute">Loading the desk…</p> : null}
           {error ? <p className="form-alert">{error}</p> : null}
-          {!loading && !selected ? <p className="mb-4 text-sm text-mute">No open event yet.</p> : null}
+          {!loading && !selected ? <p className="mb-4 text-sm text-mute">No event is open for registration.</p> : null}
 
           <div className="form-grid">
             <label className="form-label form-span-2">
               Full name
               <input className="field" name="full_name" autoComplete="name" required placeholder="As on your student card" />
             </label>
+            <fieldset className="form-label form-span-2 gender-set">
+              <legend>Gender</legend>
+              <div className="gender-row">
+                {GENDERS.map((gender) => (
+                  <label key={gender} className="gender-chip">
+                    <input type="radio" name="gender" value={gender} required />
+                    {gender}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <label className="form-label">
               Kab Email
               <input
@@ -166,15 +173,13 @@ export function RegisterPage() {
           </div>
 
           <button
-            className="btn-gold mt-6 w-full py-3.5 text-sm uppercase tracking-[0.14em] disabled:opacity-50"
-            disabled={pending || !selected || selected.is_full}
+            className="btn-blue mt-6 w-full py-3.5 text-sm uppercase tracking-[0.14em] disabled:opacity-50"
+            disabled={pending || loading || !selected || selected.is_full}
           >
-            {!selected ? "Closed" : selected.is_full ? "Full" : pending ? "Submitting…" : "Submit registration"}
+            {loading ? "Loading…" : !selected ? "Closed" : selected.is_full ? "Full" : pending ? "Submitting…" : "Submit registration"}
           </button>
         </form>
-
-        <PublicFooter />
       </main>
-    </div>
+    </PageShell>
   );
 }

@@ -1,30 +1,47 @@
 import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <div className="topbar">
-        <span>Faculty of Computing, Library and Information Science</span>
-        <span className="topbar-right">Kabale University</span>
-      </div>
       <div className="masthead">
-        <div className="logo-slot logo-slot--left">
+        <Link to="/" className="letterhead">
           <img className="logo-cosaku" src="/brand/cosaku-logo.png" alt="COSAKU" />
-        </div>
-        <div className="logo-slot logo-slot--right">
-          <img className="logo-kab" src="/brand/kab-logo.jpg" alt="Kabale University" />
-        </div>
+          <div className="letterhead-copy">
+            <p className="letterhead-name">COSAKU</p>
+            <p className="letterhead-full">Computing Students Association of Kabale University</p>
+          </div>
+        </Link>
       </div>
-      <div className="gold-bar" />
+      <div className="header-stripe" aria-hidden="true" />
     </header>
   );
 }
 
 export function PublicFooter() {
   return (
-    <footer className="site-footer">
-      <p>Computing Students Association of Kabale University</p>
-      <Link to="/admin/login">Executives</Link>
+    <footer className="uni-footer">
+      <div className="uni-badge">
+        <img className="logo-kab-badge" src="/brand/kab-logo.jpg" alt="Kabale University" />
+        <div>
+          <p className="uni-name">Kabale University</p>
+          <p className="uni-motto">Knowledge is the Future</p>
+        </div>
+      </div>
+      <p className="uni-note">Moving technology to another level</p>
+      <Link to="/admin/login" className="uni-exec">
+        Executives
+      </Link>
     </footer>
+  );
+}
+
+export function PageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="page-shell">
+      <SiteHeader />
+      <div className="page-shell-body">{children}</div>
+      <PublicFooter />
+    </div>
   );
 }

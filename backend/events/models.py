@@ -8,7 +8,7 @@ class Event(models.Model):
     description = models.TextField(blank=True, default="")
     venue = models.CharField(max_length=120)
     starts_at = models.DateTimeField()
-    ends_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField()
     capacity = models.PositiveIntegerField(null=True, blank=True)
     is_published = models.BooleanField(default=True)
     is_closed = models.BooleanField(default=False)
@@ -34,6 +34,7 @@ class Registration(models.Model):
     programme = models.CharField(max_length=80)
     year_of_study = models.CharField(max_length=20)
     extra_answer = models.CharField(max_length=240, blank=True)
+    gender = models.CharField(max_length=24, blank=True, default="")
     attended = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

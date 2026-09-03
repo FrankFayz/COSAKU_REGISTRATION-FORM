@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { PublicFooter, SiteHeader } from "../components/Brand";
+import { PageShell } from "../components/Brand";
 import type { RegistrationItem } from "../types";
 import { formatClock, formatDay } from "../utils";
 
@@ -10,26 +10,25 @@ export function SuccessPage() {
 
   if (!registration || (params.get("id") && String(registration.id) !== params.get("id"))) {
     return (
-      <div className="min-h-svh bg-cream">
-        <SiteHeader />
+      <PageShell>
         <main className="page-wrap">
-          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-kab">Registered</h1>
+          <h1 className="form-title">Registered</h1>
           <Link to="/register" className="btn-gold mt-6 inline-block px-6 py-3 text-sm uppercase tracking-[0.12em]">
             Register
           </Link>
         </main>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-svh bg-cream">
-      <SiteHeader />
+    <PageShell>
       <main className="page-wrap">
         <section className="form-card text-center">
-          <p className="text-sm font-medium text-green">Registered</p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{registration.event_title}</h1>
-          <p className="mt-6 text-lg font-semibold tracking-wide text-ink">{registration.kab_email}</p>
+          <p className="form-kicker">You're registered</p>
+          <h1 className="form-title">{registration.full_name}</h1>
+          <p className="form-lead mt-3">{registration.event_title}</p>
+          <p className="form-kicker mt-5">Moving technology to another level</p>
           <p className="mt-2 text-sm text-mute">
             {registration.starts_at ? `${formatDay(registration.starts_at)} · ${formatClock(registration.starts_at)}` : ""}
             {registration.venue ? ` · ${registration.venue}` : ""}
@@ -43,8 +42,7 @@ export function SuccessPage() {
             </Link>
           </div>
         </section>
-        <PublicFooter />
       </main>
-    </div>
+    </PageShell>
   );
 }

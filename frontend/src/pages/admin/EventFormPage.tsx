@@ -24,14 +24,12 @@ export function EventFormPage() {
     setPending(true);
     setError("");
     const form = new FormData(e.currentTarget);
-    const open = form.get("is_open") === "on";
     const payload = {
       title: form.get("title"),
       venue: form.get("venue"),
       starts_at: fromDateTimeLocal(String(form.get("starts_at") || "")),
-      ends_at: fromDateTimeLocal(String(form.get("ends_at") || "")) || null,
+      ends_at: fromDateTimeLocal(String(form.get("ends_at") || "")),
       is_published: true,
-      is_closed: !open,
       summary: String(form.get("title") || ""),
       description: "",
       capacity: null,
@@ -54,13 +52,14 @@ export function EventFormPage() {
     return <p className="text-mute">Loading event…</p>;
   }
 
-  const openByDefault = event ? !event.is_closed : true;
-
   return (
     <div className="mx-auto max-w-xl">
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-kab">
         {editing ? "Edit event" : "New event"}
       </h1>
+      <p className="mt-2 text-sm text-mute">
+        Times cannot overlap another COSAKU event. Open or stop registration from the event page.
+      </p>
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
       <form onSubmit={onSubmit} className="form-card mt-5 grid gap-4">
         <label className="grid gap-1.5 text-sm font-medium text-ink">
@@ -88,14 +87,11 @@ export function EventFormPage() {
               className="field"
               type="datetime-local"
               name="ends_at"
+              required
               defaultValue={event?.ends_at ? toDateTimeLocal(event.ends_at) : ""}
             />
           </label>
         </div>
-        <label className="flex items-center gap-2 text-sm text-ink">
-          <input type="checkbox" name="is_open" defaultChecked={openByDefault} />
-          Open for registration
-        </label>
         <button className="btn-gold mt-1 py-3.5 text-sm uppercase tracking-[0.12em]" disabled={pending}>
           {pending ? "Saving…" : editing ? "Save" : "Create event"}
         </button>

@@ -21,7 +21,7 @@ export function AdminShell() {
   }
 
   return (
-    <div className="min-h-svh bg-cream">
+    <div className="min-h-svh bg-cream overflow-x-hidden">
       <SiteHeader />
       <nav className="admin-subnav no-print">
         <NavLink to="/admin" end>

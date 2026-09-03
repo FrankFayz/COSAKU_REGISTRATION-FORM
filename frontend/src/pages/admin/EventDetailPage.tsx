@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, apiUrl, getToken } from "../../api";
+import { PieChart, countSlices } from "../../components/PieChart";
 import type { EventItem, RegistrationItem } from "../../types";
 import { formatWhen } from "../../utils";
 
@@ -10,6 +11,7 @@ export function EventDetailPage() {
   const [event, setEvent] = useState<EventItem | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
+  const [deskBusy, setDeskBusy] = useState(false);
 
   async function load() {
     if (!id) return;
@@ -26,11 +28,48 @@ export function EventDetailPage() {
     const needle = query.trim().toLowerCase();
     if (!needle) return rows;
     return rows.filter((row) =>
-      [row.full_name, row.kab_email, row.phone, row.programme, row.year_of_study].join(" ").toLowerCase().includes(needle),
+      [row.full_name, row.gender, row.kab_email, row.phone, row.programme, row.year_of_study].join(" ").toLowerCase().includes(needle),
     );
   }, [query, rows]);
 
   const present = rows.filter((row) => row.attended).length;
+  const programmeSlices = useMemo(
+    () => countSlices(rows.map((row) => row.programme)),
+    [rows],
+  );
+  const yearSlices = useMemo(
+    () => countSlices(rows.map((row) => row.year_of_study)),
+    [rows],
+  );
+  const genderSlices = useMemo(() => {
+    return countSlices(rows.map((row) => row.gender)).map((slice) => ({
+      ...slice,
+      color: slice.label === "Female" ? "#fdc854" : slice.label === "Male" ? "#0072bb" : "#7a7a7a",
+    }));
+  }, [rows]);
+
+  async function setDesk(open: boolean) {
+    if (!id) return;
+    if (open) {
+      const ok = window.confirm(
+        "COSAKU runs one registration desk at a time. Opening this event will stop registration on any other open event.",
+      );
+      if (!ok) return;
+    } else {
+      const ok = window.confirm("Stop registration for this event? Students will no longer be able to join.");
+      if (!ok) return;
+    }
+    setDeskBusy(true);
+    setError("");
+    try {
+      await api(`/api/admin/events/${id}/desk/`, { method: "POST", json: { open } });
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update registration.");
+    } finally {
+      setDeskBusy(false);
+    }
+  }
 
   async function toggle(row: RegistrationItem) {
     await api(`/api/admin/registrations/${row.id}/attendance/`, { method: "POST" });
@@ -75,16 +114,25 @@ export function EventDetailPage() {
           </p>
         </div>
         <span className={`status-pill ${event.is_closed ? "status-closed" : "status-open"}`}>
-          {event.is_closed ? "Closed" : "Open"}
+          {event.is_closed ? "Registration stopped" : "Registration open"}
         </span>
       </div>
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 
       <div className="action-row no-print mt-5">
-        <Link to={`/admin/events/${event.id}/edit`} className="btn-blue px-4 py-2 text-sm">
+        {event.is_closed ? (
+          <button type="button" className="btn-blue px-4 py-2 text-sm" disabled={deskBusy} onClick={() => setDesk(true)}>
+            {deskBusy ? "Saving…" : "Open registration"}
+          </button>
+        ) : (
+          <button type="button" className="btn-stop px-4 py-2 text-sm" disabled={deskBusy} onClick={() => setDesk(false)}>
+            {deskBusy ? "Saving…" : "Stop registration"}
+          </button>
+        )}
+        <Link to={`/admin/events/${event.id}/edit`} className="btn-gold px-4 py-2 text-sm">
           Edit
         </Link>
-        <button type="button" className="btn-gold px-4 py-2 text-sm" onClick={downloadCsv}>
+        <button type="button" className="bg-white px-4 py-2 text-sm text-ink" onClick={downloadCsv}>
           Download CSV
         </button>
         <button type="button" className="bg-white px-4 py-2 text-sm text-ink" onClick={() => window.print()}>
@@ -95,7 +143,7 @@ export function EventDetailPage() {
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div className="card p-4">
           <p className="text-xs uppercase tracking-[0.12em] text-mute">Registered</p>
           <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{rows.length}</p>
@@ -104,7 +152,23 @@ export function EventDetailPage() {
           <p className="text-xs uppercase tracking-[0.12em] text-mute">Present</p>
           <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{present}</p>
         </div>
+        <div className="card p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-mute">Turnout</p>
+          <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">
+            {rows.length ? `${Math.round((present / rows.length) * 100)}%` : "—"}
+          </p>
+        </div>
       </div>
+
+      <section className="audit-board">
+        <h2 className="audit-heading">Who came</h2>
+        <p className="audit-lead">Programme, year, and gender — use this to plan the next COSAKU event.</p>
+        <div className="audit-grid">
+          <PieChart title="Programme" slices={programmeSlices} />
+          <PieChart title="Year of study" slices={yearSlices} />
+          <PieChart title="Gender" slices={genderSlices} />
+        </div>
+      </section>
 
       <div className="mt-5 overflow-hidden bg-white">
         <div className="no-print border-b border-[#e6eaed] p-3">
@@ -115,6 +179,7 @@ export function EventDetailPage() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Gender</th>
                 <th>Kab Email</th>
                 <th>WhatsApp number</th>
                 <th>Programme</th>
@@ -126,6 +191,7 @@ export function EventDetailPage() {
               {filtered.map((row) => (
                 <tr key={row.id}>
                   <td className="font-medium">{row.full_name}</td>
+                  <td>{row.gender || "—"}</td>
                   <td>{row.kab_email}</td>
                   <td>{row.phone}</td>
                   <td>{row.programme}</td>
@@ -143,7 +209,7 @@ export function EventDetailPage() {
               ))}
               {filtered.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-10 text-center text-mute" colSpan={6}>
+                  <td className="px-4 py-10 text-center text-mute" colSpan={7}>
                     No matching students.
                   </td>
                 </tr>

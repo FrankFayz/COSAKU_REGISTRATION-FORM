@@ -23,6 +23,7 @@ export type EventItem = {
 export type RegistrationItem = {
   id: number;
   full_name: string;
+  gender: string;
   kab_email: string;
   phone: string;
   programme: string;
