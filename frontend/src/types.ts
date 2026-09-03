@@ -50,3 +50,9 @@ export type PageResult<T> = {
   pages: number;
   results: T[];
 };
+
+export type Overview = {
+  stats: Stats;
+  events: EventItem[];
+  recent: PageResult<RegistrationItem>;
+};

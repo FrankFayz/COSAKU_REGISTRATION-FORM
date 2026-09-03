@@ -3,7 +3,7 @@ import os
 
 from django.db import DatabaseError, IntegrityError
 from django.contrib.auth import authenticate, get_user_model
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
@@ -143,19 +143,59 @@ class LogoutView(APIView):
         return Response({"ok": True})
 
 
+def desk_stats():
+    now = timezone.now()
+    events = Event.objects.aggregate(
+        events=Count("id"),
+        upcoming=Count("id", filter=Q(is_published=True, is_closed=False, starts_at__gte=now)),
+    )
+    people = Registration.objects.aggregate(
+        registrations=Count("id"),
+        attended=Count("id", filter=Q(attended=True)),
+    )
+    return {
+        "events": events["events"],
+        "upcoming": events["upcoming"],
+        "registrations": people["registrations"],
+        "attended": people["attended"],
+    }
+
+
+def recent_page(page: int, limit: int = 10):
+    qs = Registration.objects.select_related("event").order_by("-created_at")
+    total = qs.count()
+    pages = max((total + limit - 1) // limit, 1)
+    page = min(max(page, 1), pages)
+    start = (page - 1) * limit
+    data = []
+    for row in qs[start : start + limit]:
+        item = RegistrationSerializer(row).data
+        item["event_title"] = row.event.title
+        data.append(item)
+    return {"count": total, "page": page, "pages": pages, "results": data}
+
+
 class StatsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        now = timezone.now()
+        return Response(desk_stats())
+
+
+class OverviewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            page = int(request.query_params.get("page") or 1)
+        except (TypeError, ValueError):
+            page = 1
+        events = Event.objects.annotate(taken=Count("registrations")).order_by("-starts_at")[:6]
         return Response(
             {
-                "events": Event.objects.count(),
-                "upcoming": Event.objects.filter(
-                    is_published=True, is_closed=False, starts_at__gte=now
-                ).count(),
-                "registrations": Registration.objects.count(),
-                "attended": Registration.objects.filter(attended=True).count(),
+                "stats": desk_stats(),
+                "events": AdminEventSerializer(events, many=True).data,
+                "recent": recent_page(page),
             }
         )
 
@@ -300,18 +340,4 @@ class RecentRegistrationsView(APIView):
             page = int(request.query_params.get("page") or 1)
         except (TypeError, ValueError):
             page = 1
-        page = max(page, 1)
-        limit = 10
-        qs = Registration.objects.select_related("event").order_by("-created_at")
-        total = qs.count()
-        pages = max((total + limit - 1) // limit, 1)
-        if page > pages:
-            page = pages
-        start = (page - 1) * limit
-        rows = qs[start : start + limit]
-        data = []
-        for row in rows:
-            item = RegistrationSerializer(row).data
-            item["event_title"] = row.event.title
-            data.append(item)
-        return Response({"count": total, "page": page, "pages": pages, "results": data})
+        return Response(recent_page(page))

@@ -1,8 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, asList } from "../../api";
-import type { EventItem, PageResult, RegistrationItem, Stats } from "../../types";
+import type { EventItem, Overview, PageResult, RegistrationItem, Stats } from "../../types";
 import { formatDay } from "../../utils";
+
+function applyRecent(
+  data: PageResult<RegistrationItem> | RegistrationItem[],
+  setRecent: (rows: RegistrationItem[]) => void,
+  setCount: (n: number) => void,
+  setPages: (n: number) => void,
+) {
+  if (Array.isArray(data)) {
+    setRecent(data);
+    setCount(data.length);
+    setPages(1);
+    return;
+  }
+  setRecent(asList<RegistrationItem>(data));
+  setCount(data.count);
+  setPages(Math.max(data.pages, 1));
+}
 
 export function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -14,31 +31,27 @@ export function DashboardPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [listBusy, setListBusy] = useState(false);
+  const skipRecent = useRef(true);
 
   useEffect(() => {
-    Promise.all([api<Stats>("/api/admin/stats/"), api<EventItem[]>("/api/admin/events/")])
-      .then(([s, e]) => {
-        setStats(s);
-        setEvents(asList<EventItem>(e).slice(0, 6));
+    api<Overview>("/api/admin/overview/?page=1")
+      .then((data) => {
+        setStats(data.stats);
+        setEvents(asList<EventItem>(data.events));
+        applyRecent(data.recent, setRecent, setCount, setPages);
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
+    if (skipRecent.current) {
+      skipRecent.current = false;
+      return;
+    }
     setListBusy(true);
     api<PageResult<RegistrationItem> | RegistrationItem[]>(`/api/admin/recent/?page=${page}`)
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setRecent(data);
-          setCount(data.length);
-          setPages(1);
-          return;
-        }
-        setRecent(asList<RegistrationItem>(data));
-        setCount(data.count);
-        setPages(Math.max(data.pages, 1));
-      })
+      .then((data) => applyRecent(data, setRecent, setCount, setPages))
       .catch((err: Error) => setError(err.message))
       .finally(() => setListBusy(false));
   }, [page]);
@@ -66,11 +79,11 @@ export function DashboardPage() {
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
       {loading ? <p className="mt-4 text-sm text-mute">Loading…</p> : null}
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-4">
+      <div className="stat-grid">
         {cards.map((card) => (
-          <div key={card.label} className="card p-4">
-            <p className="text-xs uppercase tracking-[0.12em] text-mute">{card.label}</p>
-            <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold text-kab">{card.value}</p>
+          <div key={card.label} className="card stat-card">
+            <p className="stat-label">{card.label}</p>
+            <p className="stat-value">{card.value}</p>
           </div>
         ))}
       </div>
