@@ -31,10 +31,11 @@ export function SuccessPage() {
     <PageShell>
       <main className="page-wrap">
         <section className="confirm-card">
-          <p className="confirm-stamp">Registration confirmed</p>
-          <h1 className="confirm-name">{registration.full_name}</h1>
+          <p className="confirm-stamp">Registered</p>
+          <h1 className="confirm-name">Thank you, {registration.full_name}</h1>
           <p className="confirm-lead">
-            You are on the COSAKU list. Keep this page or a screenshot to show at the door.
+            You have registered for {registration.event_title}. COSAKU is glad to have you at this event,
+            and we look forward to seeing you.
           </p>
 
           <dl className="confirm-sheet">
