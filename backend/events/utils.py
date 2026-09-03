@@ -14,13 +14,20 @@ def is_kab_email(value: str) -> bool:
 
 
 def normalize_ug_phone(value: str) -> str | None:
-    digits = re.sub(r"\D", "", value)
-    if digits.startswith("256") and len(digits) == 12:
-        return f"+{digits}"
-    if digits.startswith("0") and len(digits) == 10:
-        return f"+256{digits[1:]}"
+    digits = re.sub(r"\D", "", value or "")
+    if digits.startswith("00"):
+        digits = digits[2:]
+    if digits.startswith("2560") and len(digits) == 13:
+        digits = digits[3:]
+    elif digits.startswith("256") and len(digits) == 12 and digits[3] == "7":
+        digits = f"0{digits[3:]}"
+
+    if len(digits) == 10 and digits.startswith("07"):
+        return digits
     if len(digits) == 9 and digits.startswith("7"):
-        return f"+256{digits}"
+        return f"0{digits}"
+    if 8 <= len(digits) <= 15 and not digits.startswith("0"):
+        return digits
     return None
 
 

@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models.functions import Lower
+
+from .utils import normalize_kab_email, normalize_ug_phone
 
 
 class Event(models.Model):
@@ -39,8 +42,23 @@ class Registration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("event", "kab_email")
         ordering = ["created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "event",
+                Lower("kab_email"),
+                name="uniq_registration_event_kab_email_ci",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.kab_email:
+            self.kab_email = normalize_kab_email(self.kab_email)
+        if self.phone:
+            cleaned = normalize_ug_phone(self.phone)
+            if cleaned:
+                self.phone = cleaned
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.full_name} · {self.kab_email}"

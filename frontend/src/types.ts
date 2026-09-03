@@ -43,3 +43,10 @@ export type Stats = {
   registrations: number;
   attended: number;
 };
+
+export type PageResult<T> = {
+  count: number;
+  page: number;
+  pages: number;
+  results: T[];
+};

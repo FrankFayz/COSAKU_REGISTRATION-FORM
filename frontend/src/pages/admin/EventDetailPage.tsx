@@ -132,13 +132,13 @@ export function EventDetailPage() {
         <Link to={`/admin/events/${event.id}/edit`} className="btn-gold px-4 py-2 text-sm">
           Edit
         </Link>
-        <button type="button" className="bg-white px-4 py-2 text-sm text-ink" onClick={downloadCsv}>
+        <button type="button" className="btn-paper px-4 py-2 text-sm" onClick={downloadCsv}>
           Download CSV
         </button>
-        <button type="button" className="bg-white px-4 py-2 text-sm text-ink" onClick={() => window.print()}>
+        <button type="button" className="btn-paper px-4 py-2 text-sm" onClick={() => window.print()}>
           Print
         </button>
-        <button type="button" className="px-4 py-2 text-sm text-red-700" onClick={removeEvent}>
+        <button type="button" className="btn-paper-danger px-4 py-2 text-sm" onClick={removeEvent}>
           Delete
         </button>
       </div>

@@ -8,8 +8,11 @@ export function SiteHeader() {
         <Link to="/" className="letterhead">
           <img className="logo-cosaku" src="/brand/cosaku-logo.png" alt="COSAKU" />
           <div className="letterhead-copy">
-            <p className="letterhead-name">COSAKU</p>
-            <p className="letterhead-full">Computing Students Association of Kabale University</p>
+            <p className="letterhead-name">
+              Computing Students Association
+              <span> of Kabale University</span>
+            </p>
+            <p className="letterhead-motto">Moving technology to another level</p>
           </div>
         </Link>
       </div>

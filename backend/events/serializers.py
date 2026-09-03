@@ -77,13 +77,18 @@ class RegistrationCreateSerializer(serializers.Serializer):
     def validate_phone(self, value):
         phone = normalize_ug_phone(value)
         if not phone:
-            raise serializers.ValidationError("Use a number like 07XX XXX XXX.")
+            raise serializers.ValidationError("Enter a WhatsApp number, with or without the country code.")
         return phone
 
     def validate(self, attrs):
         event: Event = self.context["event"]
         if event.extra_question and event.extra_question_required and not attrs.get("extra_answer"):
             raise serializers.ValidationError({"extra_answer": "This answer is required."})
+        email = attrs.get("kab_email")
+        if email and Registration.objects.filter(event=event, kab_email__iexact=email).exists():
+            raise serializers.ValidationError(
+                {"kab_email": "This Kab email is already registered for this event."}
+            )
         return attrs
 
 
@@ -103,6 +108,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
             "created_at",
             "event",
         )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["phone"] = normalize_ug_phone(instance.phone) or instance.phone
+        return data
 
 
 class AdminEventSerializer(serializers.ModelSerializer):

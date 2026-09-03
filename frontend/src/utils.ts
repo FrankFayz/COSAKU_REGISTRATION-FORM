@@ -20,6 +20,44 @@ export function formatDay(iso: string) {
   }).format(new Date(iso));
 }
 
+export function formatLongDay(iso: string) {
+  return new Intl.DateTimeFormat("en-UG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Africa/Kampala",
+  }).format(new Date(iso));
+}
+
+export function formatMonthShort(iso: string) {
+  return new Intl.DateTimeFormat("en-UG", {
+    month: "short",
+    timeZone: "Africa/Kampala",
+  }).format(new Date(iso));
+}
+
+export function formatDayNum(iso: string) {
+  return new Intl.DateTimeFormat("en-UG", {
+    day: "numeric",
+    timeZone: "Africa/Kampala",
+  }).format(new Date(iso));
+}
+
+export function formatYear(iso: string) {
+  return new Intl.DateTimeFormat("en-UG", {
+    year: "numeric",
+    timeZone: "Africa/Kampala",
+  }).format(new Date(iso));
+}
+
+export function formatWeekday(iso: string) {
+  return new Intl.DateTimeFormat("en-UG", {
+    weekday: "short",
+    timeZone: "Africa/Kampala",
+  }).format(new Date(iso));
+}
+
 export function formatClock(iso: string) {
   return new Intl.DateTimeFormat("en-UG", {
     hour: "numeric",

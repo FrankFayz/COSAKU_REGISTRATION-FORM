@@ -1,30 +1,47 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, asList } from "../../api";
-import type { EventItem, RegistrationItem, Stats } from "../../types";
+import type { EventItem, PageResult, RegistrationItem, Stats } from "../../types";
 import { formatDay } from "../../utils";
 
 export function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [recent, setRecent] = useState<RegistrationItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [count, setCount] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [listBusy, setListBusy] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api<Stats>("/api/admin/stats/"),
-      api<EventItem[]>("/api/admin/events/"),
-      api<RegistrationItem[]>("/api/admin/recent/"),
-    ])
-      .then(([s, e, r]) => {
+    Promise.all([api<Stats>("/api/admin/stats/"), api<EventItem[]>("/api/admin/events/")])
+      .then(([s, e]) => {
         setStats(s);
         setEvents(asList<EventItem>(e).slice(0, 6));
-        setRecent(asList<RegistrationItem>(r));
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    setListBusy(true);
+    api<PageResult<RegistrationItem> | RegistrationItem[]>(`/api/admin/recent/?page=${page}`)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setRecent(data);
+          setCount(data.length);
+          setPages(1);
+          return;
+        }
+        setRecent(asList<RegistrationItem>(data));
+        setCount(data.count);
+        setPages(Math.max(data.pages, 1));
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setListBusy(false));
+  }, [page]);
 
   const cards = stats
     ? [
@@ -34,6 +51,9 @@ export function DashboardPage() {
         { label: "Present", value: stats.attended },
       ]
     : [];
+
+  const from = count === 0 ? 0 : (page - 1) * 10 + 1;
+  const to = Math.min(page * 10, count);
 
   return (
     <div>
@@ -97,8 +117,21 @@ export function DashboardPage() {
                 <p className="text-xs text-mute">{formatDay(row.created_at)}</p>
               </li>
             ))}
-            {!loading && recent.length === 0 ? <p className="px-4 py-6 text-sm text-mute">No registrations yet.</p> : null}
+            {!listBusy && recent.length === 0 ? <p className="px-4 py-6 text-sm text-mute">No registrations yet.</p> : null}
           </ul>
+          {count > 10 ? (
+            <div className="list-pager">
+              <button type="button" className="btn-paper px-3 py-1.5 text-sm" disabled={page <= 1 || listBusy} onClick={() => setPage((current) => current - 1)}>
+                Previous
+              </button>
+              <p>
+                {from}–{to} of {count}
+              </p>
+              <button type="button" className="btn-paper px-3 py-1.5 text-sm" disabled={page >= pages || listBusy} onClick={() => setPage((current) => current + 1)}>
+                Next
+              </button>
+            </div>
+          ) : null}
         </section>
       </div>
     </div>

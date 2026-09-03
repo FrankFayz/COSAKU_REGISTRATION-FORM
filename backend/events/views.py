@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Event, Registration
+from .utils import normalize_ug_phone
 from .serializers import (
     AdminEventSerializer,
     PublicEventSerializer,
@@ -74,12 +75,6 @@ class RegisterView(APIView):
         serializer = RegistrationCreateSerializer(data=request.data, context={"event": event})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        if Registration.objects.filter(event=event, kab_email=data["kab_email"]).exists():
-            return Response(
-                {"detail": "This Kab email is already registered for this event."},
-                status=400,
-            )
 
         try:
             registration = Registration.objects.create(event=event, **data)
@@ -273,7 +268,7 @@ class EventCSVView(APIView):
                     row.full_name,
                     row.gender,
                     row.kab_email,
-                    row.phone,
+                    normalize_ug_phone(row.phone) or row.phone,
                     row.programme,
                     row.year_of_study,
                     row.extra_answer,
@@ -301,10 +296,22 @@ class RecentRegistrationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        rows = Registration.objects.select_related("event").order_by("-created_at")[:8]
+        try:
+            page = int(request.query_params.get("page") or 1)
+        except (TypeError, ValueError):
+            page = 1
+        page = max(page, 1)
+        limit = 10
+        qs = Registration.objects.select_related("event").order_by("-created_at")
+        total = qs.count()
+        pages = max((total + limit - 1) // limit, 1)
+        if page > pages:
+            page = pages
+        start = (page - 1) * limit
+        rows = qs[start : start + limit]
         data = []
         for row in rows:
             item = RegistrationSerializer(row).data
             item["event_title"] = row.event.title
             data.append(item)
-        return Response(data)
+        return Response({"count": total, "page": page, "pages": pages, "results": data})

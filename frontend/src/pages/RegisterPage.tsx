@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { api, asList } from "../api";
 import { PageShell } from "../components/Brand";
 import type { EventItem, RegistrationItem } from "../types";
-import { PROGRAMMES, YEARS, GENDERS, formatClock, formatDay } from "../utils";
+import { PROGRAMMES, YEARS, GENDERS, formatClock, formatDayNum, formatMonthShort, formatWeekday, formatYear } from "../utils";
 
 function shortError(message: string) {
   if (/already registered/i.test(message)) return "This Kab email is already registered.";
   if (/full/i.test(message)) return "This event is full.";
   if (/closed/i.test(message)) return "Registration is closed.";
   if (/kabale university email|kab email|valid email/i.test(message)) return "Use your @kab.ac.ug email.";
-  if (/phone|whatsapp|07xx/i.test(message)) return "Enter a valid WhatsApp number.";
+  if (/phone|whatsapp|07xx|country code/i.test(message)) return "Enter a WhatsApp number, with or without the country code.";
   if (/could not reach|not configured/i.test(message)) return "Could not reach the registration desk.";
   const first = message.split(/[.!]/)[0]?.trim();
   return first ? `${first}.` : "Could not register.";
@@ -74,8 +74,8 @@ export function RegisterPage() {
   return (
     <PageShell>
       <main className="page-wrap">
-        <p className="form-kicker">Moving technology to another level</p>
-        <h1 className="form-title">Join this event</h1>
+        <p className="form-kicker">COSAKU registration</p>
+        <h1 className="form-title">Join the event of the day</h1>
 
         {list.length > 1 ? (
           <div className="event-switch mt-5">
@@ -94,18 +94,34 @@ export function RegisterPage() {
         ) : null}
 
         {selected ? (
-          <p className="event-line">
-            {selected.title}
-            <span>
-              {formatDay(selected.starts_at)} · {formatClock(selected.starts_at)}
-              {selected.ends_at ? ` – ${formatClock(selected.ends_at)}` : ""} · {selected.venue}
-            </span>
-          </p>
+          <article className="event-desk">
+            <p className="event-desk-kicker">Event of the day</p>
+            <div className="event-desk-head">
+              <div className="event-desk-cal" aria-hidden="true">
+                <span className="event-desk-cal-month">{formatMonthShort(selected.starts_at)}</span>
+                <span className="event-desk-cal-day">{formatDayNum(selected.starts_at)}</span>
+                <span className="event-desk-cal-year">{formatYear(selected.starts_at)}</span>
+              </div>
+              <div className="event-desk-copy">
+                <h2 className="event-desk-title">{selected.title}</h2>
+                <p className="event-desk-when">
+                  {formatWeekday(selected.starts_at)} · {formatClock(selected.starts_at)}
+                  {selected.ends_at ? ` – ${formatClock(selected.ends_at)}` : ""}
+                </p>
+              </div>
+            </div>
+          </article>
+        ) : !loading ? (
+          <article className="event-desk event-desk-empty">
+            <p className="event-desk-kicker">Event of the day</p>
+            <h2 className="event-desk-title">No event is open</h2>
+            <p className="event-desk-note">Registration will appear here when executives open a desk.</p>
+          </article>
         ) : null}
 
         <form onSubmit={onSubmit} className="form-card mt-5">
           {error ? <p className="form-alert">{error}</p> : null}
-          {!loading && !selected ? <p className="mb-4 text-sm text-mute">No event is open for registration.</p> : null}
+          {!loading && !selected ? <p className="mb-4 text-sm text-mute">The form is closed until an event is opened.</p> : null}
 
           <div className="form-grid">
             <label className="form-label form-span-2">
@@ -136,7 +152,7 @@ export function RegisterPage() {
             </label>
             <label className="form-label">
               WhatsApp number
-              <input className="field" name="phone" inputMode="tel" autoComplete="tel" required placeholder="07XX XXX XXX" />
+              <input className="field" name="phone" inputMode="tel" autoComplete="tel" required placeholder="0700 123 456 or +256…" />
             </label>
             <label className="form-label">
               Programme
